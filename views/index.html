@@ -5,5 +5,31 @@
 {{ /block }}
 
 {{ block 'body' }}
-  <h1>{{ title }}</h1>
+  <button class="js-getmovie-btn">查询最新电影列表|电影天堂</button>
+  <ul>
+    <li>电影名称+评分+地区+磁力链接</li>
+    <li>电影名称+评分+地区+磁力链接</li>
+    <li>电影名称+评分+地区+磁力链接</li>
+    <li>电影名称+评分+地区+磁力链接</li>
+    <li>电影名称+评分+地区+磁力链接</li>
+  </ul>
+
+  <script src="/js/jquery.min.js"></script>
+
+  <script>
+    $(document).ready(function() {
+      $('.js-getmovie-btn').click(function() {
+        $.ajax({
+          type: "POST",
+          url: "/movie"
+        })
+        .done(function(data, textState) {
+          console.log(data)
+        })
+        .fail(function(XMLHttpRequest, textState) {
+          console.log(XMLHttpRequest, textState)
+        })
+      })
+    })
+  </script>
 {{ /block }}
