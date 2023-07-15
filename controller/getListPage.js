@@ -1,12 +1,7 @@
-const fs = require('fs')
 const request = require('request')
-// const { DEST_DIR } = require('./config')
-
-const options = {
-  dest: `./cache/`,
-  file: '01list',
-  destSuffix: '.html.zip'
-}
+const zlib = require('zlib')
+const cheerio = require('cheerio')
+const iconv = require('iconv-lite')
 
 const requestOptions = (url) => {
   return {
@@ -31,20 +26,35 @@ const requestOptions = (url) => {
 }
 
 const getListPage = (url) => {
-  const { dest, file, destSuffix } = options
-  if (!fs.existsSync('cache')) fs.mkdirSync('cache')
-  // if (!fs.existsSync(dest)) fs.mkdirSync(dest)
-  const stream = fs.createWriteStream(dest + file + destSuffix)
-
   return new Promise((resolve, reject) => {
-    request(requestOptions(url))
-    .pipe(stream)
-    .on('close', err => {
-      if (err) reject(err)
-      else {
-        resolve()
+    const req = request.get(requestOptions(url))
+
+    req.on('response', res => {
+      let chunks = []
+      res.on('data', chunk => {
+        chunks.push(chunk)
+      })
+
+      res.on('end', () => {
         console.log('列表页下载完成')
-      }
+        const buffer = Buffer.concat(chunks)
+        const fileBuffer = zlib.gunzipSync(buffer)
+        const fileString = iconv.decode(fileBuffer, 'gb2312').toString()
+        const $ = cheerio.load(fileString)
+
+        const itemUrls = []
+        for (let i = 0; i < $('.co_content8').eq(0).find('a').length; i++) {
+          if ($('.co_content8').eq(0).find('a').eq(i).text().indexOf('字') > -1) {
+            itemUrls.push(
+              'https://www.dydytt.net' +
+              $('.co_content8').eq(0).find('a').eq(i).attr('href')
+            )
+          }
+        }
+
+        console.log('列表页解析完成 ' + itemUrls.length)
+        resolve(itemUrls)
+      })
     })
   })
 }
