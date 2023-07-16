@@ -5,31 +5,77 @@
 {{ /block }}
 
 {{ block 'body' }}
-  <button class="js-getmovie-btn">查询最新电影列表|电影天堂</button>
-  <ul>
-    <li>电影名称+评分+地区+磁力链接</li>
-    <li>电影名称+评分+地区+磁力链接</li>
-    <li>电影名称+评分+地区+磁力链接</li>
-    <li>电影名称+评分+地区+磁力链接</li>
-    <li>电影名称+评分+地区+磁力链接</li>
-  </ul>
+  <div class="container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>产地</th>
+          <th>类型</th>
+          <th>豆瓣评分</th>
+          <th>IMDB评分</th>
+        </tr>
+      </thead>
+      <tbody class="js-tbody">
+        <tr>
+          <td class="text-center text-disable" height="100" colspan="5">加载中...</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="text-disable">
+      使用说明：<br>
+      1、名称 已带有下载地址，点击即可下载<br>
+      2、产地 属于中国会有一个提醒图标<br>
+      3、豆瓣评分 从6分开始会有提醒图标，每多一分则多一个图标，大等于9分4个点图标<br>
+    </div>
+  </div>
 
   <script src="/js/jquery.min.js"></script>
-
   <script>
     $(document).ready(function() {
-      $('.js-getmovie-btn').click(function() {
-        $.ajax({
-          type: "POST",
-          url: "/movie"
-        })
-        .done(function(data, textState) {
-          console.log(data)
-        })
-        .fail(function(XMLHttpRequest, textState) {
-          console.log(XMLHttpRequest, textState)
-        })
-      })
+      getData()
+
+      // 获取电影列表数据
+      function getData() {
+        var tbodyStr = ''
+        $.ajax({ type: "POST", url: "/movie" })
+          .done(function(data, textState) {
+            data.forEach(item => {
+              tbodyStr += '<tr><td><a target="_blank" href="' +
+                item.downloadUrl + '">' +
+                item.name + '</a></td><td>' +
+                item.country + isChinese(item.country) + '</td><td>' +
+                item.category + '</td><td>' +
+                item.ratingDouban + ratingIconHtmlStr(item.ratingDouban) + '</td><td>' +
+                item.ratingIMDb + '</td></tr>'
+            })
+          })
+          .fail(function(XMLHttpRequest, textState) {
+            tbodyStr = '<td class="text-center text-disable" height="100" colspan="5">请求出错，请重试</td>'
+          })
+          .always(function () {
+            $('.js-tbody').html(tbodyStr)
+          })
+      }
+
+      // 国产提醒图标 htmlStr
+      function isChinese(country) {
+        if (country.indexOf('中国') > -1) return '<div class="warning-wrap"><i class="warning"></i></div>'
+        else return ''
+      }
+
+      // 豆瓣评分提醒图标 htmlStr
+      function ratingIconHtmlStr(rating) {
+        if (!rating || rating < 6) return ''
+        var warningStrStart = '<div class="warning-wrap">'
+        var warningStrStrBody = ''
+        var warningStrEnd = '</div>'
+        if (rating >= 6) warningStrStrBody = '<i class="warning"></i>'
+        if (rating >= 7) warningStrStrBody += '<i class="warning"></i>'
+        if (rating >= 8) warningStrStrBody += '<i class="warning"></i>'
+        if (rating >= 9) warningStrStrBody += '<i class="warning"></i>'
+        return warningStrStart + warningStrStrBody + warningStrEnd
+      }
     })
   </script>
 {{ /block }}

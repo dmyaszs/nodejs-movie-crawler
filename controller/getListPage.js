@@ -36,7 +36,7 @@ const getListPage = (url) => {
       })
 
       res.on('end', () => {
-        console.log('列表页下载完成')
+        console.log('list页下载 - ok')
         const buffer = Buffer.concat(chunks)
         const fileBuffer = zlib.gunzipSync(buffer)
         const fileString = iconv.decode(fileBuffer, 'gb2312').toString()
@@ -45,14 +45,14 @@ const getListPage = (url) => {
         const itemUrls = []
         for (let i = 0; i < $('.co_content8').eq(0).find('a').length; i++) {
           if ($('.co_content8').eq(0).find('a').eq(i).text().indexOf('字') > -1) {
-            itemUrls.push(
-              'https://www.dydytt.net' +
-              $('.co_content8').eq(0).find('a').eq(i).attr('href')
-            )
+            itemUrls.push({
+              name: $('.co_content8').eq(0).find('a').eq(i).text().match(/《(\S*)》/)[1],
+              url: 'https://www.dydytt.net' + $('.co_content8').eq(0).find('a').eq(i).attr('href')
+            })
           }
         }
 
-        console.log('列表页解析完成 ' + itemUrls.length)
+        console.log('list页解析 - ok ' + itemUrls.length)
         resolve(itemUrls)
       })
     })

@@ -1,13 +1,7 @@
-const fs = require('fs')
 const request = require('request')
-// const { DEST_DIR } = require('./config')
-
-// const options = {
-//   // src: `./${DEST_DIR}/02listPages-txt/`,
-//   // srcSuffix: '.txt',
-//   dest: `./cache/03item`,
-//   destSuffix: '.html.zip'
-// };
+const zlib = require('zlib')
+const cheerio = require('cheerio')
+const iconv = require('iconv-lite')
 
 const requestOptions = (url) => {
   return {
@@ -31,25 +25,7 @@ const requestOptions = (url) => {
   }
 }
 
-const getItemPage = (id, url) => {
-  // const { dest, destSuffix } = options
-  // if (!fs.existsSync('cache')) fs.mkdirSync('cache')
-  // // if (!fs.existsSync(dest)) fs.mkdirSync(dest)
-  // // if (!fs.existsSync(dest + page + '/')) fs.mkdirSync(dest + page + '/')
-  // const stream = fs.createWriteStream(dest + id + destSuffix)
-
-  // return new Promise(resolve => {
-  //   request(requestOptions(url))
-  //     .pipe(stream)
-  //     .on('close', err => {
-  //       if (err) reject(err)
-  //       else {
-  //         resolve()
-  //         console.log('详情页下载完成 - ' + id)
-  //       }
-  //     })
-  // })
-
+const getItemPage = (url, index) => {
   return new Promise((resolve, reject) => {
     const req = request.get(requestOptions(url))
 
@@ -60,31 +36,43 @@ const getItemPage = (id, url) => {
       })
 
       res.on('end', () => {
-        console.log('详情页页下载完成')
+        console.log('item页下载 - ok ' + index)
         const buffer = Buffer.concat(chunks)
         const fileBuffer = zlib.gunzipSync(buffer)
         const fileString = iconv.decode(fileBuffer, 'gb2312').toString()
         const $ = cheerio.load(fileString)
+        const content = $('#Zoom').text()
 
-        const itemUrls = []
-        for (let i = 0; i < $('.co_content8').eq(0).find('a').length; i++) {
-          if ($('.co_content8').eq(0).find('a').eq(i).text().indexOf('字') > -1) {
-            itemUrls.push(
-              'https://www.dydytt.net' +
-              $('.co_content8').eq(0).find('a').eq(i).attr('href')
-            )
-          }
+        const ratingDouban = content.match(/豆瓣评分([\s|\d|\.]*)\/10/)
+        const ratingIMDb = content.match(/IMDb评分([\s|\d|\.]*)\/10/)
+        const itemInfo = {
+          ratingDouban: ratingDouban && ratingDouban.length > 1 ? ratingDouban[1].trimLeft() : '',
+          ratingIMDb: ratingIMDb && ratingIMDb.length > 1 ? ratingIMDb[1].trimLeft() : '',
+          country: content.match(/◎产　　地([\s|\S]*)◎类/)[1].trimLeft().replaceAll(' ', ''),
+          category: content.match(/◎类　　别([\s|\S]*)◎语/)[1].trimLeft().replaceAll(' ', ''),
+          downloadUrl: $('#Zoom a').eq(0).attr('href')
         }
-
-        console.log('详情页页解析完成 ' + itemUrls.length)
-        resolve(itemUrls)
+        console.log('item页解析 - ok ' + index)
+        resolve(itemInfo)
       })
     })
   })
 }
 
-a.match(/◎译　　名　([\s|\S]*)\n◎年/)[1]
-a.match(/豆瓣评分　(\S*)\/10/)[1]
-a.match(/产　　地　(\S*)\n◎类　　别/)[1]
-document.querySelectorAll('#Zoom a')[0].href
-module.exports = getItemPage
+const getItemPages = (arr) => {
+  promiseArr = arr.map(async (item, index) => {
+    let { ratingDouban, ratingIMDb, category, country, downloadUrl } = await getItemPage(item.url, index)
+    item.ratingDouban = ratingDouban
+    item.ratingIMDb = ratingIMDb
+    item.category = category
+    item.country = country
+    item.downloadUrl = downloadUrl
+    delete item.url
+    return item
+  })
+
+  return Promise.all(promiseArr)
+}
+
+
+module.exports = getItemPages
