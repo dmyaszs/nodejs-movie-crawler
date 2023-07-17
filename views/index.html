@@ -18,7 +18,10 @@
       </thead>
       <tbody class="js-tbody">
         <tr>
-          <td class="text-center text-disable" height="100" colspan="5">加载中...</td>
+          <td
+            class="text-center text-disable"
+            height="100" colspan="5"
+          >加载中...</td>
         </tr>
       </tbody>
     </table>
@@ -38,7 +41,7 @@
       // 获取电影列表数据
       function getData() {
         var tbodyStr = ''
-        $.ajax({ type: "POST", url: "/movie" })
+        $.ajax({ type: "GET", url: "api/movies" })
           .done(function(data, textState) {
             data.forEach(item => {
               tbodyStr += '<tr><td><a target="_blank" href="' +
@@ -60,8 +63,9 @@
 
       // 国产提醒图标 htmlStr
       function isChinese(country) {
-        if (country.indexOf('中国') > -1) return '<div class="warning-wrap"><i class="warning"></i></div>'
-        else return ''
+        return country.indexOf('中国') > -1 ?
+          '<div class="warning-wrap"><i class="warning"></i></div>' :
+          ''
       }
 
       // 豆瓣评分提醒图标 htmlStr
@@ -70,10 +74,12 @@
         var warningStrStart = '<div class="warning-wrap">'
         var warningStrStrBody = ''
         var warningStrEnd = '</div>'
+
         if (rating >= 6) warningStrStrBody = '<i class="warning"></i>'
         if (rating >= 7) warningStrStrBody += '<i class="warning"></i>'
         if (rating >= 8) warningStrStrBody += '<i class="warning"></i>'
         if (rating >= 9) warningStrStrBody += '<i class="warning"></i>'
+
         return warningStrStart + warningStrStrBody + warningStrEnd
       }
     })
