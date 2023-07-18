@@ -20,6 +20,7 @@ const downloadPage = (url) => {
         resolve(fileString)
       })
     })
+    req.on('error', err => reject(err))
   })
 }
 

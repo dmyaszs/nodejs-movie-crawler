@@ -8,11 +8,12 @@ const { itemParseRule } = require('./crawlerConfig')
 
 const detailPageHandle = (url, index) => {
   return new Promise(async (resolve, reject) => {
-    const pageStr = await pageDownload(url)
-    const $ = cheerio.load(pageStr)
-    const itemInfo = itemParseRule($)
-    console.log('item页解析完成 index:' + index)
-    resolve(itemInfo)
+    try {
+      const pageStr = await pageDownload(url)
+      const $ = cheerio.load(pageStr)
+      const itemInfo = itemParseRule($)
+      resolve(itemInfo)
+    } catch (err) { reject(err.message) }
   })
 }
 
