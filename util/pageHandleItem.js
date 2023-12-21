@@ -21,13 +21,11 @@ const detailPagesHandle = (itemUrlArr) => {
   promiseArr = itemUrlArr.map(async (item, index) => {
     let {
       ratingDouban,
-      ratingIMDb,
       category,
       country,
       downloadUrl
     } = await detailPageHandle(item.url, index)
     item.ratingDouban = ratingDouban
-    item.ratingIMDb = ratingIMDb
     item.category = category
     item.country = country
     item.downloadUrl = downloadUrl

@@ -41,10 +41,8 @@ const listParseRule = $ => {
 const itemParseRule = $ => {
   const content = $('#Zoom').text()
   const ratingDouban = content.match(/豆瓣评分([\s|\d|\.]*)\/10/)
-  const ratingIMDb = content.match(/IMDb评分([\s|\d|\.]*)\/10/)
   const itemInfo = {
     ratingDouban: ratingDouban && ratingDouban.length > 1 ? ratingDouban[1].trimLeft() : '',
-    ratingIMDb: ratingIMDb && ratingIMDb.length > 1 ? ratingIMDb[1].trimLeft() : '',
     country: content.match(/◎产　　地([\s|\S]*)◎类/)[1].trimLeft().replaceAll(' ', ''),
     category: content.match(/◎类　　别([\s|\S]*)◎语/)[1].trimLeft().replaceAll(' ', ''),
     downloadUrl: $('#Zoom a').eq(0).attr('href')
